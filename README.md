@@ -2,7 +2,7 @@
 
 An interactive visualization for understanding complex numbers through rotation, tilt, and projection.
 
-![Preview](circle.png)
+![Preview](/assets/circle.png)
 
 ## Motivation
 
