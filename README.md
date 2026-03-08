@@ -2,6 +2,8 @@
 
 An interactive visualization for understanding complex numbers through rotation, tilt, and projection.
 
+![Preview](circle.png)
+
 ## Motivation
 
 I made this project because I did not truly understand complex numbers when they were first presented to me as symbols alone during engineering studies.
