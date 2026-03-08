@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complex Numbers Are Not Imaginary</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0f; color: #c8c8d4; font-family: 'Georgia', serif; }
+    #root { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    .container { max-width: 720px; width: 100%; text-align: center; }
+    h1 { font-size: 1.6rem; color: #e8c547; font-weight: 400; letter-spacing: 0.03em; margin-bottom: 4px; }
+    .subtitle { font-size: 0.95rem; color: #556677; margin-bottom: 20px; font-style: italic; }
+    .canvas-wrap { position: relative; width: 100%; padding-bottom: 70%; border-radius: 8px; overflow: hidden; border: 1px solid #151525; }
+    .canvas-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .controls { margin-top: 20px; padding: 16px 20px; background: #0e0e18; border-radius: 8px; border: 1px solid #151525; }
+    .slider-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+    .slider-row label { font-size: 0.9rem; color: #556677; min-width: 80px; }
+    .slider-row input[type=range] { flex: 1; accent-color: #e8c547; }
+    .slider-val { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e8c547; min-width: 40px; text-align: right; }
+    .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { padding: 6px 16px; background: transparent; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-family: 'Courier New', monospace; transition: 0.15s; }
+    .btn-gold { color: #e8c547; border: 1px solid #e8c547; }
+    .btn-gold.active { background: #e8c547; color: #0a0a0f; }
+    .btn-blue { color: #4a9eff; border: 1px solid #4a9eff; }
+    .btn-blue.active { background: #4a9eff; color: #0a0a0f; }
+    .btn-red { color: #ff4466; border: 1px solid #ff4466; }
+    .btn-red.active { background: #ff4466; color: #0a0a0f; }
+    .legend { margin-top: 20px; padding: 16px 20px; background: #0e0e18; border-radius: 8px; border: 1px solid #151525; text-align: left; font-size: 0.9rem; line-height: 1.7; }
+    .legend-items { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+    .legend p { color: #556677; margin: 8px 0 0 0; }
+    .legend em { color: #c8c8d4; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="container">
+      <h1>Complex Numbers Are Not Imaginary</h1>
+      <p class="subtitle">A circle of radius π, tilted in 3D. The "imaginary" axis is simply the dimension you stop seeing.</p>
+
+      <div class="canvas-wrap">
+        <canvas id="mainCanvas"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="slider-row">
+          <label>Tilt angle</label>
+          <input type="range" id="tiltSlider" min="0" max="89" step="1" value="0" />
+          <span class="slider-val" id="tiltVal">0°</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="btnAuto">Auto-tilt</button>
+          <button class="btn btn-blue active" id="btnProj">Hide projection</button>
+          <button class="btn btn-red active" id="btnHidden">Hide hidden axis</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-items">
+          <span><span style="color:#e8c547">━━</span> True circle (r = π)</span>
+          <span><span style="color:#4a9eff">╌╌</span> What you see (projection)</span>
+          <span><span style="color:#ff4466">╌╌</span> What "i" encodes (hidden depth)</span>
+        </div>
+        <p>
+          At 0° you see the full circle. As you tilt, one axis compresses — it hasn't vanished,
+          it went <em>orthogonal</em> to your view. That hidden component is exactly what the
+          "imaginary" part of a complex number encodes. Nothing imaginary about it.
+          Gauss wanted to call them <em>lateral</em> numbers. He was right.
+        </p>
+      </div>
+
+      <div class="legend" style="margin-top:12px;">
+        <p style="color:#667788; font-size:0.85rem;">
+          © Sanjin Redzic — <a href="https://github.com/ninjas1337" style="color:#4a9eff;">github.com/ninjas1337</a> — MIT License
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const COLORS = {
+      bg: "#0a0a0f", circle3D: "#e8c547", projection: "#4a9eff",
+      hiddenArc: "#ff4466", axis: "#333344", axisLabel: "#667788",
+      text: "#c8c8d4", accent: "#e8c547", dim: "#556677", grid: "#151525",
+    };
+
+    const R = Math.PI;
+    let tilt = 0;
+    let showProjection = true;
+    let showHidden = true;
+    let autoRotate = false;
+
+    const canvas = document.getElementById("mainCanvas");
+    const ctx = canvas.getContext("2d");
+    const slider = document.getElementById("tiltSlider");
+    const tiltVal = document.getElementById("tiltVal");
+    const btnAuto = document.getElementById("btnAuto");
+    const btnProj = document.getElementById("btnProj");
+    const btnHidden = document.getElementById("btnHidden");
+
+    slider.addEventListener("input", (e) => {
+      tilt = Number(e.target.value);
+      tiltVal.textContent = tilt + "°";
+      autoRotate = false;
+      btnAuto.classList.remove("active");
+    });
+
+    btnAuto.addEventListener("click", () => {
+      autoRotate = !autoRotate;
+      btnAuto.classList.toggle("active", autoRotate);
+    });
+
+    btnProj.addEventListener("click", () => {
+      showProjection = !showProjection;
+      btnProj.classList.toggle("active", showProjection);
+      btnProj.textContent = showProjection ? "Hide projection" : "Show projection";
+    });
+
+    btnHidden.addEventListener("click", () => {
+      showHidden = !showHidden;
+      btnHidden.classList.toggle("active", showHidden);
+      btnHidden.textContent = showHidden ? "Hide hidden axis" : "Show hidden axis";
+    });
+
+    function project3D(x, y, z) {
+      const rect = canvas.getBoundingClientRect();
+      const W = rect.width;
+      const H = rect.height;
+      const cx = W * 0.5;
+      const cy = H * 0.48;
+      const scale = Math.min(W, H) * 0.115;
+      const px = x * 1.0 + z * 0.35;
+      const py = -y * 1.0 + z * 0.2;
+      return [cx + px * scale, cy + py * scale];
+    }
+
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      const W = rect.width;
+      const H = rect.height;
+
+      ctx.fillStyle = COLORS.bg;
+      ctx.fillRect(0, 0, W, H);
+
+      const tiltRad = (tilt * Math.PI) / 180;
+      const cosT = Math.cos(tiltRad);
+      const sinT = Math.sin(tiltRad);
+
+      // Grid
+      ctx.strokeStyle = COLORS.grid;
+      ctx.lineWidth = 0.5;
+      for (let i = -5; i <= 5; i++) {
+        ctx.beginPath();
+        let [x1, y1] = project3D(i, 0, -5);
+        let [x2, y2] = project3D(i, 0, 5);
+        ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.beginPath();
+        [x1, y1] = project3D(-5, 0, i);
+        [x2, y2] = project3D(5, 0, i);
+        ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+
+      // Axes
+      function drawAxis(from, to, color, label, lOff) {
+        const [x1, y1] = project3D(...from);
+        const [x2, y2] = project3D(...to);
+        ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2); ctx.lineTo(x2 - 8 * Math.cos(angle - 0.3), y2 - 8 * Math.sin(angle - 0.3));
+        ctx.moveTo(x2, y2); ctx.lineTo(x2 - 8 * Math.cos(angle + 0.3), y2 - 8 * Math.sin(angle + 0.3));
+        ctx.stroke();
+        if (label) {
+          ctx.fillStyle = COLORS.axisLabel;
+          ctx.font = "bold 14px 'Courier New', monospace";
+          ctx.textAlign = "left";
+          ctx.fillText(label, x2 + (lOff?.[0] || 8), y2 + (lOff?.[1] || 4));
+        }
+      }
+
+      drawAxis([-5, 0, 0], [5.5, 0, 0], COLORS.axis, "x (Real)", [5, 4]);
+      drawAxis([0, -1, 0], [0, 5.5, 0], COLORS.axis, 'y ("Imaginary")', [8, 0]);
+      drawAxis([0, 0, -3], [0, 0, 4.5], COLORS.axis, "z (Depth)", [8, 4]);
+
+      // Circle points
+      const N = 200;
+      const circlePoints3D = [];
+      const projectedPoints = [];
+      for (let i = 0; i <= N; i++) {
+        const theta = (i / N) * 2 * Math.PI;
+        const xc = R * Math.cos(theta);
+        const yc = R * Math.sin(theta);
+        circlePoints3D.push([xc, yc * cosT, yc * sinT]);
+        projectedPoints.push([xc, yc * cosT, 0]);
+      }
+
+      // Projection ellipse
+      if (showProjection) {
+        ctx.strokeStyle = COLORS.projection; ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const [px, py] = project3D(...projectedPoints[i]);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+
+      // 3D tilted circle
+      ctx.strokeStyle = COLORS.circle3D; ctx.lineWidth = 3;
+      ctx.shadowColor = COLORS.circle3D; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const [px, py] = project3D(...circlePoints3D[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke(); ctx.shadowBlur = 0;
+
+      // Radius line at 3π/2
+      const radiusAngle = Math.PI + Math.PI / 2;
+      const rxc = R * Math.cos(radiusAngle);
+      const ryc = R * Math.sin(radiusAngle);
+      const rx3 = rxc, ry3 = ryc * cosT, rz3 = ryc * sinT;
+      const [rCenterX, rCenterY] = project3D(0, 0, 0);
+      const [rEdgeX, rEdgeY] = project3D(rx3, ry3, rz3);
+      ctx.strokeStyle = COLORS.circle3D; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(rCenterX, rCenterY); ctx.lineTo(rEdgeX, rEdgeY); ctx.stroke();
+      ctx.fillStyle = COLORS.circle3D;
+      ctx.beginPath(); ctx.arc(rEdgeX, rEdgeY, 4, 0, 2 * Math.PI); ctx.fill();
+      const rMidX = (rCenterX + rEdgeX) / 2;
+      const rMidY = (rCenterY + rEdgeY) / 2;
+      ctx.fillStyle = COLORS.accent;
+      ctx.font = "italic bold 15px 'Georgia', serif";
+      ctx.save();
+      const rAngleScreen = Math.atan2(rEdgeY - rCenterY, rEdgeX - rCenterX);
+      ctx.translate(rMidX, rMidY);
+      ctx.rotate(rAngleScreen);
+      ctx.textAlign = "left";
+      ctx.fillText("r = π", 4, -8);
+      ctx.restore();
+
+      // Hidden component connectors
+      if (showHidden && tilt > 2) {
+        ctx.strokeStyle = COLORS.hiddenArc; ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        const keyAngles = [Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+        for (const theta of keyAngles) {
+          const xc = R * Math.cos(theta);
+          const yc = R * Math.sin(theta);
+          const [px1, py1] = project3D(xc, yc * cosT, 0);
+          const [px2, py2] = project3D(xc, yc * cosT, yc * sinT);
+          ctx.beginPath(); ctx.moveTo(px1, py1); ctx.lineTo(px2, py2); ctx.stroke();
+          ctx.fillStyle = COLORS.hiddenArc;
+          ctx.beginPath(); ctx.arc(px2, py2, 3, 0, 2 * Math.PI); ctx.fill();
+          ctx.fillStyle = COLORS.projection;
+          ctx.beginPath(); ctx.arc(px1, py1, 3, 0, 2 * Math.PI); ctx.fill();
+        }
+        ctx.setLineDash([]);
+      }
+
+      // Moving point
+      const t = Date.now() * 0.001;
+      const theta0 = t * 0.8;
+      const xp = R * Math.cos(theta0), yp = R * Math.sin(theta0);
+      const [dotX, dotY] = project3D(xp, yp * cosT, yp * sinT);
+      ctx.fillStyle = COLORS.circle3D; ctx.shadowColor = COLORS.circle3D; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(dotX, dotY, 6, 0, 2 * Math.PI); ctx.fill(); ctx.shadowBlur = 0;
+
+      if (showProjection) {
+        const [dotPX, dotPY] = project3D(xp, yp * cosT, 0);
+        ctx.fillStyle = COLORS.projection; ctx.shadowColor = COLORS.projection; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(dotPX, dotPY, 5, 0, 2 * Math.PI); ctx.fill(); ctx.shadowBlur = 0;
+        if (tilt > 2) {
+          ctx.strokeStyle = COLORS.hiddenArc; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
+          ctx.beginPath(); ctx.moveTo(dotPX, dotPY); ctx.lineTo(dotX, dotY); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+
+      // Equations top-right
+      const thetaDeg = ((theta0 % (2 * Math.PI)) * 180 / Math.PI);
+      const thetaNorm = ((thetaDeg % 360) + 360) % 360;
+      const cosVal = Math.cos(theta0), sinVal = Math.sin(theta0);
+      const visiblePart = (R * cosVal).toFixed(2);
+      const hiddenFull = (R * sinVal).toFixed(2);
+      const hiddenVisible = (R * sinVal * cosT).toFixed(2);
+      const hiddenDepth = (R * sinVal * sinT).toFixed(2);
+
+      const eqX = W - 20, eqY = 30;
+      ctx.textAlign = "right";
+
+      ctx.fillStyle = COLORS.accent; ctx.font = "bold 15px 'Georgia', serif";
+      ctx.fillText("True circle:", eqX, eqY);
+      ctx.fillStyle = COLORS.circle3D; ctx.font = "italic 16px 'Georgia', serif";
+      ctx.fillText("z = π · e^(iθ)", eqX, eqY + 22);
+      ctx.fillStyle = COLORS.dim; ctx.font = "13px 'Courier New', monospace";
+      ctx.fillText("= r(cos θ + i·sin θ)", eqX, eqY + 42);
+      ctx.fillStyle = COLORS.accent; ctx.font = "13px 'Courier New', monospace";
+      ctx.fillText("|z| = r = π ≈ " + R.toFixed(4), eqX, eqY + 62);
+      ctx.fillStyle = COLORS.dim; ctx.font = "13px 'Courier New', monospace";
+      ctx.fillText("θ = " + thetaNorm.toFixed(0) + "°", eqX, eqY + 82);
+
+      // Decomposition bottom-right
+      const decX = W - 20, decY = H - 100;
+      ctx.fillStyle = "#6a8aaa"; ctx.font = "bold 13px 'Georgia', serif";
+      ctx.fillText("Decomposition:", decX, decY);
+      ctx.fillStyle = COLORS.text; ctx.font = "13px 'Courier New', monospace";
+      ctx.fillText("Real:  π·cos θ = " + visiblePart, decX, decY + 20);
+      if (tilt < 2) {
+        ctx.fillStyle = COLORS.circle3D;
+        ctx.fillText("i·π·sin θ = i·" + hiddenFull + "  (fully visible)", decX, decY + 40);
+      } else {
+        ctx.fillStyle = COLORS.projection;
+        ctx.fillText("Visible:  i·π·sin θ·cos(" + tilt.toFixed(0) + "°) = i·" + hiddenVisible, decX, decY + 40);
+        ctx.fillStyle = COLORS.hiddenArc;
+        ctx.fillText("Hidden:   i·π·sin θ·sin(" + tilt.toFixed(0) + "°) = i·" + hiddenDepth, decX, decY + 60);
+      }
+
+      // Info bottom-left
+      ctx.textAlign = "left";
+      const bMinor = R * cosT;
+      const ratio = bMinor > 0.01 ? ((2 * Math.PI * R) / bMinor).toFixed(1) : "→ ∞";
+      ctx.fillStyle = COLORS.dim; ctx.font = "13px 'Courier New', monospace";
+      const infoY = H - 80;
+      ctx.fillText("Tilt: " + tilt.toFixed(0) + "°", 20, infoY);
+      ctx.fillText("Visible radius: π·cos(" + tilt.toFixed(0) + "°) = " + bMinor.toFixed(3), 20, infoY + 20);
+      ctx.fillText("C/r_visible: " + ratio, 20, infoY + 40);
+      if (tilt > 45) {
+        ctx.fillStyle = COLORS.hiddenArc;
+        ctx.fillText("← ratio diverges as tilt → 90°", 20, infoY + 60);
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    // Auto-rotate
+    setInterval(() => {
+      if (autoRotate) {
+        tilt = tilt + 0.3 > 89 ? 0 : tilt + 0.3;
+        slider.value = Math.round(tilt);
+        tiltVal.textContent = Math.round(tilt) + "°";
+      }
+    }, 16);
+
+    draw();
+  </script>
+</body>
+</html>
