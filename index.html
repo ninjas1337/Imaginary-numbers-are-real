@@ -147,6 +147,7 @@ const R=1.2;                       // sphere radius
 let a=3,b=2;                       // centre z = a + i b
 let phi=0, phiT=0;                 // 0 = front (look along depth), 90 = from above (look along Im)
 let spin=null;                     // animation for multiply by i
+let trace=null;                    // the 90-degree arc traced by the centre: {m, t0, t1, fade}
 
 // yaw grows in the middle of the turn so the 3D shape is visible, and is 0 in the pure views
 const yawOf=p=>30*Math.sin(Math.PI*p/90)*Math.PI/180;
@@ -194,6 +195,23 @@ function draw(){
   g.fillStyle=css("--re"); g.beginPath(); g.arc(Rp[0],Rp[1],5*dpr,0,2*Math.PI); g.fill();
   if(imVisible>0.04){ const Ip=P(0,b,0); line(C,Ip,css("--re"),1.2,[2,4]); g.fillStyle=css("--im"); g.beginPath(); g.arc(Ip[0],Ip[1],5*dpr,0,2*Math.PI); g.fill(); }
 
+  // the quarter-turn traced by multiply by i
+  if(trace && trace.fade>0){
+    g.globalAlpha=Math.min(1,trace.fade);
+    const ghost=P(trace.m*Math.cos(trace.t0),trace.m*Math.sin(trace.t0),0);
+    g.strokeStyle=css("--sphere"); g.lineWidth=1.2*dpr; g.setLineDash([4*dpr,4*dpr]);
+    g.beginPath(); g.arc(ghost[0],ghost[1],R*S,0,2*Math.PI); g.stroke(); g.setLineDash([]);
+    line(O,ghost,css("--muted"),1.2,[3,4]);
+    g.strokeStyle=css("--im"); g.lineWidth=3.5*dpr; g.lineCap="round"; g.beginPath();
+    for(let k=0;k<=60;k++){const t=trace.t0+(trace.t1-trace.t0)*k/60,p=P(trace.m*Math.cos(t),trace.m*Math.sin(t),0);k?g.lineTo(...p):g.moveTo(...p);}
+    g.stroke(); g.lineCap="butt";
+    const deg=Math.round((trace.t1-trace.t0)*180/Math.PI), tm=(trace.t0+trace.t1)/2;
+    const lr=Math.max(0.9,trace.m*0.62), lp=P(lr*Math.cos(tm)+0.35,lr*Math.sin(tm),0);
+    g.fillStyle=css("--im"); g.font="bold "+(15*dpr)+"px "+css("--font-mono"); g.textAlign="center"; g.textBaseline="middle";
+    g.fillText("+"+deg+"°  (× i)",lp[0],lp[1]);
+    g.globalAlpha=1;
+  }
+
   // the sphere: in any orthographic view it projects to a circle of the same radius
   const grd=g.createRadialGradient(C[0]-0.4*R*S,C[1]-0.45*R*S,0.1*R*S,C[0],C[1],R*S);
   grd.addColorStop(0,"rgba(255,255,255,0.85)"); grd.addColorStop(0.35,css("--sphere")); grd.addColorStop(1,"rgba(0,0,0,0.35)");
@@ -219,11 +237,12 @@ function draw(){
 function setView(p){ phiT=p; ["v-top","v-3d","v-front"].forEach(id=>$(id).classList.remove("on")); $(p===90?"v-top":p===0?"v-front":"v-3d").classList.add("on"); if(reduce){phi=p;$("tilt").value=p;draw();} else kick(); }
 $("v-top").onclick=()=>setView(90); $("v-3d").onclick=()=>setView(45); $("v-front").onclick=()=>setView(0);
 $("tilt").addEventListener("input",function(){phi=phiT=+this.value;["v-top","v-3d","v-front"].forEach(id=>$(id).classList.remove("on"));draw();});
-$("re").addEventListener("input",function(){a=+this.value;draw();});
-$("im").addEventListener("input",function(){b=+this.value;draw();});
+$("re").addEventListener("input",function(){a=+this.value;trace=null;draw();});
+$("im").addEventListener("input",function(){b=+this.value;trace=null;draw();});
 $("timesI").onclick=()=>{
-  if(reduce){ const na=-b, nb=a; a=Math.round(na*100)/100; b=Math.round(nb*100)/100; $("re").value=a; $("im").value=b; draw(); return; }
-  spin={m:Math.hypot(a,b), t0:Math.atan2(b,a), t:0}; kick();
+  const m=Math.hypot(a,b), t0=Math.atan2(b,a);
+  if(reduce){ const na=-b, nb=a; a=Math.round(na*100)/100; b=Math.round(nb*100)/100; trace={m,t0,t1:t0+Math.PI/2,fade:1}; $("re").value=a; $("im").value=b; draw(); return; }
+  spin={m, t0, t:0}; trace={m,t0,t1:t0,fade:1}; kick();
 };
 let raf=0;
 function kick(){ if(!raf) raf=requestAnimationFrame(tick); }
@@ -231,9 +250,11 @@ function tick(){
   raf=0; let more=false;
   if(Math.abs(phiT-phi)>0.05){phi+=(phiT-phi)*0.12; more=true;} else phi=phiT;
   $("tilt").value=phi;
-  if(spin){spin.t=Math.min(1,spin.t+0.04); const th=spin.t0+spin.t*Math.PI/2; a=spin.m*Math.cos(th); b=spin.m*Math.sin(th);
-    if(spin.t>=1){a=Math.round(a*100)/100;b=Math.round(b*100)/100;spin=null;} else more=true;
+  if(spin){spin.t=Math.min(1,spin.t+0.025); const e=0.5-0.5*Math.cos(Math.PI*spin.t), th=spin.t0+e*Math.PI/2; a=spin.m*Math.cos(th); b=spin.m*Math.sin(th);
+    if(trace) trace.t1=th;
+    if(spin.t>=1){a=Math.round(a*100)/100;b=Math.round(b*100)/100;spin=null;trace.hold=60;} more=true;
     $("re").value=a; $("im").value=b;}
+  else if(trace && trace.fade>0 && !reduce){ if(trace.hold>0) trace.hold--; else trace.fade-=0.02; if(trace.fade>0) more=true; }
   draw(); if(more) kick();
 }
 addEventListener("resize",draw);
