@@ -71,6 +71,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--re);outline-off
 .sw{display:inline-block;width:.8em;height:.8em;border-radius:2px;vertical-align:-.05em;margin-right:4px}
 .callout{border-left:4px solid var(--im);background:var(--soft);padding:12px 16px;border-radius:0 8px 8px 0;max-width:68ch}
 footer{border-top:1px solid var(--line);padding-top:18px;font-size:.88rem;color:var(--muted);display:grid;gap:8px}
+.src{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
+sup a{text-decoration:none}
 a{color:var(--re)}
 </style>
 </head>
@@ -123,7 +125,8 @@ a{color:var(--re)}
 <section>
   <h2>Why i·i = −1</h2>
   <p>Press <b>Multiply by i</b>. The ball swings a quarter-turn around 0: its distance stays the same and its angle grows by 90°. Press it twice and the ball has turned 180°, to the opposite side of the number line. Turning half a circle is the same as multiplying by −1, so i·i = −1. No magic, just two quarter-turns.</p>
-  <p>Gauss suggested calling these numbers <i>lateral</i>, sideways numbers. With the sphere in front of you it is easy to see why.</p>
+  <p>Gauss wrote in 1831 that if +1, −1 and √−1 had been called the <i>direct</i>, <i>inverse</i> and <i>lateral</i> unit, instead of positive, negative and imaginary, there would hardly have been any obscurity about them.<sup><a href="#src1">1</a></sup> Lateral means sideways. With the sphere in front of you it is easy to see why.</p>
+  <p>The picture is older than the name. In 1797 the Norwegian-born surveyor Caspar Wessel presented a paper to the Royal Danish Academy, <i>On the analytical representation of direction</i>, in which he drew these numbers as directed lines, with the new unit perpendicular to the old one and multiplication as turning.<sup><a href="#src2">2</a></sup> It went almost unnoticed for a century. Jean-Robert Argand found the same picture independently in 1806.<sup><a href="#src3">3</a></sup></p>
 </section>
 
 <section>
@@ -134,6 +137,13 @@ a{color:var(--re)}
 <footer>
   <p>© Sanjin Redzic · <a href="https://github.com/ninjas1337/Imaginary-numbers-are-real">Source on GitHub</a> · MIT License. Code written with Claude (Anthropic).</p>
   <p>This is an intuition tool. It does not claim the imaginary axis is a hidden physical dimension; it shows what the algebra of complex numbers already says, in geometry.</p>
+  <p><b>Sources</b></p>
+  <ol class="src">
+    <li id="src1">C. F. Gauss, Anzeige of <i>Theoria residuorum biquadraticorum, Commentatio secunda</i>, Göttingische gelehrte Anzeigen, 23 April 1831; <i>Werke</i> II, p. 178: „Hätte man +1, −1, √−1 nicht positive, negative, imaginäre (oder gar unmögliche) Einheit, sondern etwa directe, inverse, laterale Einheit genannt, so hätte von einer solchen Dunkelheit kaum die Rede sein können.“</li>
+    <li id="src2">C. Wessel, Om Directionens analytiske Betegning, et Forsøg, anvendt fornemmelig til plane og sphæriske Polygoners Opløsning, <i>Nye Samling af det Kongelige Danske Videnskabernes Selskabs Skrifter</i> 5 (1799), 469–518 (presented 1797). English translation by F. Damhus, with introduction by B. Branner, N. Voje Johansen and K. Andersen: <i>On the Analytical Representation of Direction</i>, Matematisk-fysiske Meddelelser 46:1, Royal Danish Academy of Sciences and Letters, Copenhagen, 1999.</li>
+    <li id="src3">J.-R. Argand, <i>Essai sur une manière de représenter les quantités imaginaires dans les constructions géométriques</i>, Paris, 1806.</li>
+    <li>For the algebra behind the quarter-turn: S. F. Gull, A. N. Lasenby &amp; C. J. L. Doran, Imaginary numbers are not real: the geometric algebra of spacetime, <i>Foundations of Physics</i> 23 (1993), 1175–1201; D. Hestenes, <i>New Foundations for Classical Mechanics</i>, 2nd ed., Kluwer, 1999.</li>
+  </ol>
 </footer>
 </main>
 
