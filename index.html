@@ -1,353 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Complex Numbers Are Not Imaginary</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0f; color: #c8c8d4; font-family: 'Georgia', serif; }
-    #root { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    .container { max-width: 720px; width: 100%; text-align: center; }
-    h1 { font-size: 1.6rem; color: #e8c547; font-weight: 400; letter-spacing: 0.03em; margin-bottom: 4px; }
-    .subtitle { font-size: 0.95rem; color: #556677; margin-bottom: 20px; font-style: italic; }
-    .canvas-wrap { position: relative; width: 100%; padding-bottom: 70%; border-radius: 8px; overflow: hidden; border: 1px solid #151525; }
-    .canvas-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    .controls { margin-top: 20px; padding: 16px 20px; background: #0e0e18; border-radius: 8px; border: 1px solid #151525; }
-    .slider-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
-    .slider-row label { font-size: 0.9rem; color: #556677; min-width: 80px; }
-    .slider-row input[type=range] { flex: 1; accent-color: #e8c547; }
-    .slider-val { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e8c547; min-width: 40px; text-align: right; }
-    .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-    .btn { padding: 6px 16px; background: transparent; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-family: 'Courier New', monospace; transition: 0.15s; }
-    .btn-gold { color: #e8c547; border: 1px solid #e8c547; }
-    .btn-gold.active { background: #e8c547; color: #0a0a0f; }
-    .btn-blue { color: #4a9eff; border: 1px solid #4a9eff; }
-    .btn-blue.active { background: #4a9eff; color: #0a0a0f; }
-    .btn-red { color: #ff4466; border: 1px solid #ff4466; }
-    .btn-red.active { background: #ff4466; color: #0a0a0f; }
-    .legend { margin-top: 20px; padding: 16px 20px; background: #0e0e18; border-radius: 8px; border: 1px solid #151525; text-align: left; font-size: 0.9rem; line-height: 1.7; }
-    .legend-items { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
-    .legend p { color: #556677; margin: 8px 0 0 0; }
-    .legend em { color: #c8c8d4; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complex Numbers Are Not Imaginary</title>
+<meta name="description" content="A sphere, two views and one quarter-turn: complex numbers explained geometrically, without mystery.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Complex Numbers Are Not Imaginary">
+<meta property="og:description" content="Look at a sphere from above and you see only the real part. Look from the front and the hidden imaginary part appears. That is all a complex number is.">
+<meta property="og:url" content="https://ninjas1337.github.io/Imaginary-numbers-are-real/">
+<meta property="og:image" content="https://ninjas1337.github.io/Imaginary-numbers-are-real/assets/preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Sanjin Redzic">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one reading column; the sphere scene sits in a panel with its view controls and live readouts */
+  --bg:#f4f5f7;
+  --panel:#ffffff;
+  --ink:#16202c;
+  --muted:#5d6876;
+  --line:#d8dde3;
+  --re:#1d5fa8;
+  --im:#c4621b;
+  --depth:#7a8694;
+  --sphere:#2f7d6d;
+  --soft:#e7eef6;
+  --font-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --panel:#161d26; --ink:#e3e8ee; --muted:#93a0ae; --line:#2a3440;
+    --re:#6aa8ec; --im:#f0954f; --depth:#8995a3; --sphere:#5cc0a8; --soft:#1a2532; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d26; --ink:#e3e8ee; --muted:#93a0ae; --line:#2a3440;
+  --re:#6aa8ec; --im:#f0954f; --depth:#8995a3; --sphere:#5cc0a8; --soft:#1a2532; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.6}
+main{max-width:860px;margin:0 auto;padding:32px 16px 64px;display:grid;gap:36px}
+h1{font-family:var(--font-display);font-weight:600;font-size:clamp(2rem,6vw,3.1rem);line-height:1.08;margin:0 0 12px;text-wrap:balance}
+h1 em{color:var(--im);font-weight:400}
+h2{font-family:var(--font-display);font-weight:600;font-size:clamp(1.4rem,4vw,1.85rem);line-height:1.15;margin:0;text-wrap:balance}
+p{margin:0;max-width:68ch}
+.lede{font-size:1.12rem;color:var(--muted)}
+section{display:grid;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:12px}
+canvas{display:block;width:100%;aspect-ratio:1.45/1;border-radius:8px;background:var(--bg);touch-action:pan-y}
+.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:.95rem}
+.row label{display:flex;gap:8px;align-items:center}
+input[type=range]{accent-color:var(--re);width:min(260px,100%)}
+button{font:inherit;font-size:.92rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--re)}
+button.on{background:var(--re);border-color:var(--re);color:var(--panel)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--re);outline-offset:2px}
+.read{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.read{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cell{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.cell .k{font-size:.78rem;color:var(--muted)}
+.cell .v{font-family:var(--font-mono);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.note{font-family:var(--font-mono);font-size:.88rem;color:var(--muted)}
+.sw{display:inline-block;width:.8em;height:.8em;border-radius:2px;vertical-align:-.05em;margin-right:4px}
+.callout{border-left:4px solid var(--im);background:var(--soft);padding:12px 16px;border-radius:0 8px 8px 0;max-width:68ch}
+footer{border-top:1px solid var(--line);padding-top:18px;font-size:.88rem;color:var(--muted);display:grid;gap:8px}
+a{color:var(--re)}
+</style>
 </head>
 <body>
-  <div id="root">
-    <div class="container">
-      <h1>Complex Numbers Are Not Imaginary</h1>
-      <p class="subtitle">A circle of radius π, tilted in 3D. The "imaginary" axis is simply the dimension you stop seeing.</p>
+<main>
+<header>
+  <h1>Complex numbers are <em>not imaginary</em></h1>
+  <p class="lede">One sphere, two ways of looking at it, and a quarter-turn. That is all a complex number is.</p>
+</header>
 
-      <div class="canvas-wrap">
-        <canvas id="mainCanvas"></canvas>
-      </div>
-
-      <div class="controls">
-        <div class="slider-row">
-          <label>Tilt angle</label>
-          <input type="range" id="tiltSlider" min="0" max="89" step="1" value="0" />
-          <span class="slider-val" id="tiltVal">0°</span>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-gold" id="btnAuto">Auto-tilt</button>
-          <button class="btn btn-blue active" id="btnProj">Hide projection</button>
-          <button class="btn btn-red active" id="btnHidden">Hide hidden axis</button>
-        </div>
-      </div>
-
-      <div class="legend">
-        <div class="legend-items">
-          <span><span style="color:#e8c547">━━</span> True circle (r = π)</span>
-          <span><span style="color:#4a9eff">╌╌</span> What you see (projection)</span>
-          <span><span style="color:#ff4466">╌╌</span> What "i" encodes (hidden depth)</span>
-        </div>
-        <p>
-          At 0° you see the full circle. As you tilt, one axis compresses — it hasn't vanished,
-          it went <em>orthogonal</em> to your view. That hidden component is exactly what the
-          "imaginary" part of a complex number encodes. Nothing imaginary about it.
-          Gauss wanted to call them <em>lateral</em> numbers. He was right.
-        </p>
-      </div>
-
-      <div class="legend" style="margin-top:12px;">
-        <p style="color:#667788; font-size:0.85rem;">
-          © Sanjin Redzic — <a href="https://github.com/ninjas1337" style="color:#4a9eff;">github.com/ninjas1337</a> — MIT License
-        </p>
-      </div>
+<section>
+  <h2>A sphere in the complex plane</h2>
+  <p>Place a ball somewhere in space. To say where its centre is, you need a position along the number line (the <b style="color:var(--re)">real part</b>) and a height above it (the <b style="color:var(--im)">imaginary part</b>). Together they are one complex number, <b>z = Re + i·Im</b>. The whole ball sits in the plane these two directions span, the complex plane.</p>
+  <div class="panel">
+    <canvas id="cv" role="img" aria-label="A sphere whose centre is a complex number, seen from a chosen direction"></canvas>
+    <div class="row">
+      <button id="v-top" type="button">View from above</button>
+      <button id="v-3d" type="button">3D view</button>
+      <button id="v-front" class="on" type="button">View from the front</button>
+      <button id="timesI" type="button">Multiply by i</button>
     </div>
+    <div class="row">
+      <label for="tilt">Turn your head: <input id="tilt" type="range" min="0" max="90" step="0.5" value="0"></label>
+      <label for="re">Real part: <input id="re" type="range" min="-4" max="4" step="0.05" value="3"></label>
+      <label for="im">Imaginary part: <input id="im" type="range" min="-4" max="4" step="0.05" value="2"></label>
+    </div>
+    <div class="read">
+      <div class="cell"><div class="k">Real part</div><div class="v" id="o-re">–</div></div>
+      <div class="cell"><div class="k">Imaginary part</div><div class="v" id="o-im">–</div></div>
+      <div class="cell"><div class="k">Distance from 0, |z|</div><div class="v" id="o-mod">–</div></div>
+      <div class="cell"><div class="k">Argument (angle)</div><div class="v" id="o-arg">–</div></div>
+    </div>
+    <p class="note" id="o-view"></p>
+    <p class="note"><span class="sw" style="background:var(--re)"></span>real axis <span class="sw" style="background:var(--im);margin-left:10px"></span>imaginary axis <span class="sw" style="background:var(--depth);margin-left:10px"></span>depth (towards you)</p>
   </div>
+</section>
 
-  <script>
-    const COLORS = {
-      bg: "#0a0a0f", circle3D: "#e8c547", projection: "#4a9eff",
-      hiddenArc: "#ff4466", axis: "#333344", axisLabel: "#667788",
-      text: "#c8c8d4", accent: "#e8c547", dim: "#556677", grid: "#151525",
-    };
+<section>
+  <h2>Two views of the same ball</h2>
+  <p><b>From the front</b> you look straight at the complex plane. You see a circle, its centre, how far along it is and how high it is. Real part, imaginary part, everything.</p>
+  <p><b>From above</b> you look down along the imaginary direction. You still see a circle, because a sphere looks round from every side. But now the height has disappeared: the imaginary part points straight at your eye. All you can read is the real part. The ball did not move. One of its coordinates simply lies along your line of sight.</p>
+  <div class="callout"><p>That is the whole secret. The "imaginary" part is not imaginary. It is the part of the position that lies at right angles to the ordinary number line, so you only see it when you look from the side.</p></div>
+</section>
 
-    const R = Math.PI;
-    let tilt = 0;
-    let showProjection = true;
-    let showHidden = true;
-    let autoRotate = false;
+<section>
+  <h2>Distance and angle</h2>
+  <p>There is a second way to say where the centre is. Stand at 0 and point at it. How far away is it? That is the <b>modulus</b>, |z| = √(Re² + Im²), Pythagoras. In which direction are you pointing? That is the <b>argument</b>: the angle between the real axis and your arm. Together they say how far out the centre is and in which direction, the same information as real and imaginary part, just in polar form.</p>
+</section>
 
-    const canvas = document.getElementById("mainCanvas");
-    const ctx = canvas.getContext("2d");
-    const slider = document.getElementById("tiltSlider");
-    const tiltVal = document.getElementById("tiltVal");
-    const btnAuto = document.getElementById("btnAuto");
-    const btnProj = document.getElementById("btnProj");
-    const btnHidden = document.getElementById("btnHidden");
+<section>
+  <h2>Why i·i = −1</h2>
+  <p>Press <b>Multiply by i</b>. The ball swings a quarter-turn around 0: its distance stays the same and its angle grows by 90°. Press it twice and the ball has turned 180°, to the opposite side of the number line. Turning half a circle is the same as multiplying by −1, so i·i = −1. No magic, just two quarter-turns.</p>
+  <p>Gauss suggested calling these numbers <i>lateral</i>, sideways numbers. With the sphere in front of you it is easy to see why.</p>
+</section>
 
-    slider.addEventListener("input", (e) => {
-      tilt = Number(e.target.value);
-      tiltVal.textContent = tilt + "°";
-      autoRotate = false;
-      btnAuto.classList.remove("active");
-    });
+<section>
+  <h2>Where this leads</h2>
+  <p>The same idea, one ball per prime, each touching the next, turns into a picture of the most famous open problem in mathematics: <a href="https://ninjas1337.github.io/Riemann-Hypothesis-Drawn-with-Circles/">The Riemann Hypothesis, drawn with circles</a>.</p>
+</section>
 
-    btnAuto.addEventListener("click", () => {
-      autoRotate = !autoRotate;
-      btnAuto.classList.toggle("active", autoRotate);
-    });
+<footer>
+  <p>© Sanjin Redzic · <a href="https://github.com/ninjas1337/Imaginary-numbers-are-real">Source on GitHub</a> · MIT License. Code written with Claude (Anthropic).</p>
+  <p>This is an intuition tool. It does not claim the imaginary axis is a hidden physical dimension; it shows what the algebra of complex numbers already says, in geometry.</p>
+</footer>
+</main>
 
-    btnProj.addEventListener("click", () => {
-      showProjection = !showProjection;
-      btnProj.classList.toggle("active", showProjection);
-      btnProj.textContent = showProjection ? "Hide projection" : "Show projection";
-    });
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const R=1.2;                       // sphere radius
+let a=3,b=2;                       // centre z = a + i b
+let phi=0, phiT=0;                 // 0 = front (look along depth), 90 = from above (look along Im)
+let spin=null;                     // animation for multiply by i
 
-    btnHidden.addEventListener("click", () => {
-      showHidden = !showHidden;
-      btnHidden.classList.toggle("active", showHidden);
-      btnHidden.textContent = showHidden ? "Hide hidden axis" : "Show hidden axis";
-    });
+// yaw grows in the middle of the turn so the 3D shape is visible, and is 0 in the pure views
+const yawOf=p=>30*Math.sin(Math.PI*p/90)*Math.PI/180;
+function proj(X,Y,Z){              // X = Re, Y = Im, Z = depth
+  const ps=yawOf(phi), f=phi*Math.PI/180;
+  const X1=X*Math.cos(ps)+Z*Math.sin(ps), Z1=-X*Math.sin(ps)+Z*Math.cos(ps);
+  return {x:X1, y:Y*Math.cos(f)+Z1*Math.sin(f), d:-Y*Math.sin(f)+Z1*Math.cos(f)};
+}
 
-    function project3D(x, y, z) {
-      const rect = canvas.getBoundingClientRect();
-      const W = rect.width;
-      const H = rect.height;
-      const cx = W * 0.5;
-      const cy = H * 0.48;
-      const scale = Math.min(W, H) * 0.115;
-      const px = x * 1.0 + z * 0.35;
-      const py = -y * 1.0 + z * 0.2;
-      return [cx + px * scale, cy + py * scale];
-    }
+function draw(){
+  const c=$("cv"), r=c.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  const W=Math.round(r.width*dpr), H=Math.round(r.height*dpr);
+  if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+  const g=c.getContext("2d"); g.clearRect(0,0,W,H);
+  const S=Math.min(W,H)/11.5, cx=W/2, cy=H/2+0.2*S;
+  const P=(X,Y,Z)=>{const q=proj(X,Y,Z);return [cx+q.x*S, cy-q.y*S];};
+  const line=(A,B,col,w,dash)=>{g.strokeStyle=col;g.lineWidth=w*dpr;g.setLineDash(dash?dash.map(v=>v*dpr):[]);g.beginPath();g.moveTo(...A);g.lineTo(...B);g.stroke();g.setLineDash([]);};
+  const label=(s,p,col,al,dx,dy)=>{g.fillStyle=col;g.font=(13*dpr)+"px "+css("--font-mono");g.textAlign=al||"left";g.textBaseline="middle";g.fillText(s,p[0]+(dx||0)*dpr,p[1]+(dy||0)*dpr);};
 
-    function draw() {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      const W = rect.width;
-      const H = rect.height;
+  // complex plane grid (Z = 0)
+  g.globalAlpha=0.55;
+  for(let i=-5;i<=5;i++){ line(P(i,-5,0),P(i,5,0),css("--line"),1); line(P(-5,i,0),P(5,i,0),css("--line"),1); }
+  g.globalAlpha=1;
+  // axes
+  const arrow=(A,B,col,txt)=>{line(A,B,col,2);const an=Math.atan2(B[1]-A[1],B[0]-A[0]),L=10*dpr;g.fillStyle=col;g.beginPath();g.moveTo(...B);g.lineTo(B[0]-L*Math.cos(an-0.35),B[1]-L*Math.sin(an-0.35));g.lineTo(B[0]-L*Math.cos(an+0.35),B[1]-L*Math.sin(an+0.35));g.closePath();g.fill();if(txt)label(txt,B,col,"left",6,-8);};
+  const imVisible=Math.cos(phi*Math.PI/180);
+  arrow(P(-5.2,0,0),P(5.4,0,0),css("--re"),"Re");
+  if(imVisible>0.04) arrow(P(0,-4.6,0),P(0,4.8,0),css("--im"),"Im");
+  if(phi>3) arrow(P(0,0,-3.5),P(0,0,3.8),css("--depth"),"depth");
+  // ticks on real axis
+  for(let i=-5;i<=5;i++){ if(!i) continue; const p=P(i,0,0); g.fillStyle=css("--muted"); g.font=(10*dpr)+"px "+css("--font-mono"); g.textAlign="center"; g.textBaseline="top"; g.fillText(String(i),p[0],p[1]+5*dpr); }
 
-      ctx.fillStyle = COLORS.bg;
-      ctx.fillRect(0, 0, W, H);
+  const C=P(a,b,0), O=P(0,0,0), Rp=P(a,0,0);
+  // arrow from 0 to centre and the angle arc (both lie in the complex plane)
+  const mod=Math.hypot(a,b), arg=Math.atan2(b,a);
+  if(mod>0.05){
+    line(O,C,css("--ink"),1.6);
+    g.strokeStyle=css("--ink");g.lineWidth=1.3*dpr;g.beginPath();
+    const ra=Math.min(1.1,mod*0.45);
+    for(let k=0;k<=40;k++){const t=arg*k/40, p=P(ra*Math.cos(t),ra*Math.sin(t),0); k?g.lineTo(...p):g.moveTo(...p);} g.stroke();
+    if(imVisible>0.15){const t=arg/2,p=P((ra+0.35)*Math.cos(t),(ra+0.35)*Math.sin(t),0);label("arg",p,css("--ink"),"center");}
+  }
+  // real and imaginary parts
+  line(C,Rp,css("--im"),2.2,[5,4]);
+  g.fillStyle=css("--re"); g.beginPath(); g.arc(Rp[0],Rp[1],5*dpr,0,2*Math.PI); g.fill();
+  if(imVisible>0.04){ const Ip=P(0,b,0); line(C,Ip,css("--re"),1.2,[2,4]); g.fillStyle=css("--im"); g.beginPath(); g.arc(Ip[0],Ip[1],5*dpr,0,2*Math.PI); g.fill(); }
 
-      const tiltRad = (tilt * Math.PI) / 180;
-      const cosT = Math.cos(tiltRad);
-      const sinT = Math.sin(tiltRad);
+  // the sphere: in any orthographic view it projects to a circle of the same radius
+  const grd=g.createRadialGradient(C[0]-0.4*R*S,C[1]-0.45*R*S,0.1*R*S,C[0],C[1],R*S);
+  grd.addColorStop(0,"rgba(255,255,255,0.85)"); grd.addColorStop(0.35,css("--sphere")); grd.addColorStop(1,"rgba(0,0,0,0.35)");
+  g.globalAlpha=0.82; g.fillStyle=grd; g.beginPath(); g.arc(C[0],C[1],R*S,0,2*Math.PI); g.fill(); g.globalAlpha=1;
+  g.strokeStyle=css("--sphere"); g.lineWidth=1.5*dpr; g.beginPath(); g.arc(C[0],C[1],R*S,0,2*Math.PI); g.stroke();
+  // equator of the sphere in the complex plane (shows how the plane is tilted)
+  g.strokeStyle="rgba(255,255,255,0.7)"; g.lineWidth=1*dpr; g.beginPath();
+  for(let k=0;k<=60;k++){const t=2*Math.PI*k/60,p=P(a+R*Math.cos(t),b+R*Math.sin(t),0);k?g.lineTo(...p):g.moveTo(...p);} g.stroke();
+  g.fillStyle=css("--ink"); g.beginPath(); g.arc(C[0],C[1],4*dpr,0,2*Math.PI); g.fill();
+  label("z = "+a.toFixed(2)+(b>=0?" + ":" − ")+Math.abs(b).toFixed(2)+"i",C,css("--ink"),"left",R*S/dpr+8,-R*S/dpr*0.6);
+  if(phi>80) label("Im points at your eye: hidden",[C[0],C[1]+R*S+14*dpr],css("--im"),"center");
 
-      // Grid
-      ctx.strokeStyle = COLORS.grid;
-      ctx.lineWidth = 0.5;
-      for (let i = -5; i <= 5; i++) {
-        ctx.beginPath();
-        let [x1, y1] = project3D(i, 0, -5);
-        let [x2, y2] = project3D(i, 0, 5);
-        ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-        ctx.beginPath();
-        [x1, y1] = project3D(-5, 0, i);
-        [x2, y2] = project3D(5, 0, i);
-        ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-      }
+  // readouts
+  $("o-re").textContent=a.toFixed(2); $("o-im").textContent=b.toFixed(2);
+  $("o-mod").textContent=mod.toFixed(2);
+  $("o-arg").textContent=(arg*180/Math.PI).toFixed(1)+"° = "+arg.toFixed(3)+" rad";
+  const seen=Math.round(100*imVisible);
+  $("o-view").textContent= phi<1 ? "From the front: you see the whole complex plane. Real and imaginary part are both visible."
+    : phi>89 ? "From above: you see only the real part. The imaginary part points straight at you."
+    : `In between: you see the imaginary part shortened to ${seen} % of its length. The rest points towards you.`;
+}
 
-      // Axes
-      function drawAxis(from, to, color, label, lOff) {
-        const [x1, y1] = project3D(...from);
-        const [x2, y2] = project3D(...to);
-        ctx.strokeStyle = color; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-        const angle = Math.atan2(y2 - y1, x2 - x1);
-        ctx.beginPath();
-        ctx.moveTo(x2, y2); ctx.lineTo(x2 - 8 * Math.cos(angle - 0.3), y2 - 8 * Math.sin(angle - 0.3));
-        ctx.moveTo(x2, y2); ctx.lineTo(x2 - 8 * Math.cos(angle + 0.3), y2 - 8 * Math.sin(angle + 0.3));
-        ctx.stroke();
-        if (label) {
-          ctx.fillStyle = COLORS.axisLabel;
-          ctx.font = "bold 14px 'Courier New', monospace";
-          ctx.textAlign = "left";
-          ctx.fillText(label, x2 + (lOff?.[0] || 8), y2 + (lOff?.[1] || 4));
-        }
-      }
-
-      drawAxis([-5, 0, 0], [5.5, 0, 0], COLORS.axis, "x (Real)", [5, 4]);
-      drawAxis([0, -1, 0], [0, 5.5, 0], COLORS.axis, 'y ("Imaginary")', [8, 0]);
-      drawAxis([0, 0, -3], [0, 0, 4.5], COLORS.axis, "z (Depth)", [8, 4]);
-
-      // Circle points
-      const N = 200;
-      const circlePoints3D = [];
-      const projectedPoints = [];
-      for (let i = 0; i <= N; i++) {
-        const theta = (i / N) * 2 * Math.PI;
-        const xc = R * Math.cos(theta);
-        const yc = R * Math.sin(theta);
-        circlePoints3D.push([xc, yc * cosT, yc * sinT]);
-        projectedPoints.push([xc, yc * cosT, 0]);
-      }
-
-      // Projection ellipse
-      if (showProjection) {
-        ctx.strokeStyle = COLORS.projection; ctx.lineWidth = 2.5;
-        ctx.setLineDash([6, 4]);
-        ctx.beginPath();
-        for (let i = 0; i <= N; i++) {
-          const [px, py] = project3D(...projectedPoints[i]);
-          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-        }
-        ctx.stroke(); ctx.setLineDash([]);
-      }
-
-      // 3D tilted circle
-      ctx.strokeStyle = COLORS.circle3D; ctx.lineWidth = 3;
-      ctx.shadowColor = COLORS.circle3D; ctx.shadowBlur = 8;
-      ctx.beginPath();
-      for (let i = 0; i <= N; i++) {
-        const [px, py] = project3D(...circlePoints3D[i]);
-        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-      }
-      ctx.stroke(); ctx.shadowBlur = 0;
-
-      // Radius line at 3π/2
-      const radiusAngle = Math.PI + Math.PI / 2;
-      const rxc = R * Math.cos(radiusAngle);
-      const ryc = R * Math.sin(radiusAngle);
-      const rx3 = rxc, ry3 = ryc * cosT, rz3 = ryc * sinT;
-      const [rCenterX, rCenterY] = project3D(0, 0, 0);
-      const [rEdgeX, rEdgeY] = project3D(rx3, ry3, rz3);
-      ctx.strokeStyle = COLORS.circle3D; ctx.lineWidth = 2; ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(rCenterX, rCenterY); ctx.lineTo(rEdgeX, rEdgeY); ctx.stroke();
-      ctx.fillStyle = COLORS.circle3D;
-      ctx.beginPath(); ctx.arc(rEdgeX, rEdgeY, 4, 0, 2 * Math.PI); ctx.fill();
-      const rMidX = (rCenterX + rEdgeX) / 2;
-      const rMidY = (rCenterY + rEdgeY) / 2;
-      ctx.fillStyle = COLORS.accent;
-      ctx.font = "italic bold 15px 'Georgia', serif";
-      ctx.save();
-      const rAngleScreen = Math.atan2(rEdgeY - rCenterY, rEdgeX - rCenterX);
-      ctx.translate(rMidX, rMidY);
-      ctx.rotate(rAngleScreen);
-      ctx.textAlign = "left";
-      ctx.fillText("r = π", 4, -8);
-      ctx.restore();
-
-      // Hidden component connectors
-      if (showHidden && tilt > 2) {
-        ctx.strokeStyle = COLORS.hiddenArc; ctx.lineWidth = 1.5;
-        ctx.setLineDash([3, 3]);
-        const keyAngles = [Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-        for (const theta of keyAngles) {
-          const xc = R * Math.cos(theta);
-          const yc = R * Math.sin(theta);
-          const [px1, py1] = project3D(xc, yc * cosT, 0);
-          const [px2, py2] = project3D(xc, yc * cosT, yc * sinT);
-          ctx.beginPath(); ctx.moveTo(px1, py1); ctx.lineTo(px2, py2); ctx.stroke();
-          ctx.fillStyle = COLORS.hiddenArc;
-          ctx.beginPath(); ctx.arc(px2, py2, 3, 0, 2 * Math.PI); ctx.fill();
-          ctx.fillStyle = COLORS.projection;
-          ctx.beginPath(); ctx.arc(px1, py1, 3, 0, 2 * Math.PI); ctx.fill();
-        }
-        ctx.setLineDash([]);
-      }
-
-      // Moving point
-      const t = Date.now() * 0.001;
-      const theta0 = t * 0.8;
-      const xp = R * Math.cos(theta0), yp = R * Math.sin(theta0);
-      const [dotX, dotY] = project3D(xp, yp * cosT, yp * sinT);
-      ctx.fillStyle = COLORS.circle3D; ctx.shadowColor = COLORS.circle3D; ctx.shadowBlur = 12;
-      ctx.beginPath(); ctx.arc(dotX, dotY, 6, 0, 2 * Math.PI); ctx.fill(); ctx.shadowBlur = 0;
-
-      if (showProjection) {
-        const [dotPX, dotPY] = project3D(xp, yp * cosT, 0);
-        ctx.fillStyle = COLORS.projection; ctx.shadowColor = COLORS.projection; ctx.shadowBlur = 8;
-        ctx.beginPath(); ctx.arc(dotPX, dotPY, 5, 0, 2 * Math.PI); ctx.fill(); ctx.shadowBlur = 0;
-        if (tilt > 2) {
-          ctx.strokeStyle = COLORS.hiddenArc; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
-          ctx.beginPath(); ctx.moveTo(dotPX, dotPY); ctx.lineTo(dotX, dotY); ctx.stroke();
-          ctx.setLineDash([]);
-        }
-      }
-
-      // Equations top-right
-      const thetaDeg = ((theta0 % (2 * Math.PI)) * 180 / Math.PI);
-      const thetaNorm = ((thetaDeg % 360) + 360) % 360;
-      const cosVal = Math.cos(theta0), sinVal = Math.sin(theta0);
-      const visiblePart = (R * cosVal).toFixed(2);
-      const hiddenFull = (R * sinVal).toFixed(2);
-      const hiddenVisible = (R * sinVal * cosT).toFixed(2);
-      const hiddenDepth = (R * sinVal * sinT).toFixed(2);
-
-      const eqX = W - 20, eqY = 30;
-      ctx.textAlign = "right";
-
-      ctx.fillStyle = COLORS.accent; ctx.font = "bold 15px 'Georgia', serif";
-      ctx.fillText("True circle:", eqX, eqY);
-      ctx.fillStyle = COLORS.circle3D; ctx.font = "italic 16px 'Georgia', serif";
-      ctx.fillText("z = π · e^(iθ)", eqX, eqY + 22);
-      ctx.fillStyle = COLORS.dim; ctx.font = "13px 'Courier New', monospace";
-      ctx.fillText("= r(cos θ + i·sin θ)", eqX, eqY + 42);
-      ctx.fillStyle = COLORS.accent; ctx.font = "13px 'Courier New', monospace";
-      ctx.fillText("|z| = r = π ≈ " + R.toFixed(4), eqX, eqY + 62);
-      ctx.fillStyle = COLORS.dim; ctx.font = "13px 'Courier New', monospace";
-      ctx.fillText("θ = " + thetaNorm.toFixed(0) + "°", eqX, eqY + 82);
-
-      // Decomposition bottom-right
-      const decX = W - 20, decY = H - 100;
-      ctx.fillStyle = "#6a8aaa"; ctx.font = "bold 13px 'Georgia', serif";
-      ctx.fillText("Decomposition:", decX, decY);
-      ctx.fillStyle = COLORS.text; ctx.font = "13px 'Courier New', monospace";
-      ctx.fillText("Real:  π·cos θ = " + visiblePart, decX, decY + 20);
-      if (tilt < 2) {
-        ctx.fillStyle = COLORS.circle3D;
-        ctx.fillText("i·π·sin θ = i·" + hiddenFull + "  (fully visible)", decX, decY + 40);
-      } else {
-        ctx.fillStyle = COLORS.projection;
-        ctx.fillText("Visible:  i·π·sin θ·cos(" + tilt.toFixed(0) + "°) = i·" + hiddenVisible, decX, decY + 40);
-        ctx.fillStyle = COLORS.hiddenArc;
-        ctx.fillText("Hidden:   i·π·sin θ·sin(" + tilt.toFixed(0) + "°) = i·" + hiddenDepth, decX, decY + 60);
-      }
-
-      // Info bottom-left
-      ctx.textAlign = "left";
-      const bMinor = R * cosT;
-      const ratio = bMinor > 0.01 ? ((2 * Math.PI * R) / bMinor).toFixed(1) : "→ ∞";
-      ctx.fillStyle = COLORS.dim; ctx.font = "13px 'Courier New', monospace";
-      const infoY = H - 80;
-      ctx.fillText("Tilt: " + tilt.toFixed(0) + "°", 20, infoY);
-      ctx.fillText("Visible radius: π·cos(" + tilt.toFixed(0) + "°) = " + bMinor.toFixed(3), 20, infoY + 20);
-      ctx.fillText("C/r_visible: " + ratio, 20, infoY + 40);
-      if (tilt > 45) {
-        ctx.fillStyle = COLORS.hiddenArc;
-        ctx.fillText("← ratio diverges as tilt → 90°", 20, infoY + 60);
-      }
-
-      requestAnimationFrame(draw);
-    }
-
-    // Auto-rotate
-    setInterval(() => {
-      if (autoRotate) {
-        tilt = tilt + 0.3 > 89 ? 0 : tilt + 0.3;
-        slider.value = Math.round(tilt);
-        tiltVal.textContent = Math.round(tilt) + "°";
-      }
-    }, 16);
-
-    draw();
-  </script>
+function setView(p){ phiT=p; ["v-top","v-3d","v-front"].forEach(id=>$(id).classList.remove("on")); $(p===90?"v-top":p===0?"v-front":"v-3d").classList.add("on"); if(reduce){phi=p;$("tilt").value=p;draw();} else kick(); }
+$("v-top").onclick=()=>setView(90); $("v-3d").onclick=()=>setView(45); $("v-front").onclick=()=>setView(0);
+$("tilt").addEventListener("input",function(){phi=phiT=+this.value;["v-top","v-3d","v-front"].forEach(id=>$(id).classList.remove("on"));draw();});
+$("re").addEventListener("input",function(){a=+this.value;draw();});
+$("im").addEventListener("input",function(){b=+this.value;draw();});
+$("timesI").onclick=()=>{
+  if(reduce){ const na=-b, nb=a; a=Math.round(na*100)/100; b=Math.round(nb*100)/100; $("re").value=a; $("im").value=b; draw(); return; }
+  spin={m:Math.hypot(a,b), t0:Math.atan2(b,a), t:0}; kick();
+};
+let raf=0;
+function kick(){ if(!raf) raf=requestAnimationFrame(tick); }
+function tick(){
+  raf=0; let more=false;
+  if(Math.abs(phiT-phi)>0.05){phi+=(phiT-phi)*0.12; more=true;} else phi=phiT;
+  $("tilt").value=phi;
+  if(spin){spin.t=Math.min(1,spin.t+0.04); const th=spin.t0+spin.t*Math.PI/2; a=spin.m*Math.cos(th); b=spin.m*Math.sin(th);
+    if(spin.t>=1){a=Math.round(a*100)/100;b=Math.round(b*100)/100;spin=null;} else more=true;
+    $("re").value=a; $("im").value=b;}
+  draw(); if(more) kick();
+}
+addEventListener("resize",draw);
+if(window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+draw();
+})();
+</script>
 </body>
 </html>

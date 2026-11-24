@@ -1,8 +1,10 @@
 # Complex Numbers Are Not Imaginary
 
-An interactive visualization for understanding complex numbers through rotation, tilt, and projection.
+An interactive visualization for understanding complex numbers with one sphere, two views and a quarter-turn.
 
-![Preview](/assets/circle.png)
+👉 **Open it here: https://ninjas1337.github.io/Imaginary-numbers-are-real/**
+
+![Preview](assets/preview.png)
 
 ## Motivation
 
@@ -16,12 +18,12 @@ My hope is simple: that more people will truly understand complex numbers, not j
 
 ## What this project shows
 
-This visualization explores the idea that a complex number can be understood geometrically:
+A sphere sits in space with its centre at a complex number z = Re + i·Im.
 
-- as a point on a circle
-- as a rotating quantity with magnitude and angle
-- as something whose components can appear or disappear depending on projection
-- as a structure that becomes much easier to understand when seen spatially
+- **From the front** you look straight at the complex plane: you see a circle, its centre, the real part and the imaginary part.
+- **From above** you still see a circle (a sphere is round from every side), but now the imaginary part points straight at your eye. Only the real part is visible. The "imaginary" part is simply the part of the position at right angles to the number line.
+- **Distance and angle:** the modulus |z| says how far the centre is from 0, the argument says in which direction.
+- **Multiply by i** turns the sphere a quarter-turn around 0. Twice is a half-turn, which is why i·i = −1.
 
 The goal is not to replace formal mathematics, but to provide intuition to formal mathematics.
 
@@ -36,6 +38,12 @@ Complex numbers appear everywhere in mathematics, physics, and engineering:
 - rotations and phase relationships
 
 Yet many people meet them in a way that makes them seem artificial or mysterious. I believe they deserve better. They are one of the most beautiful ideas in mathematics.
+
+## Related
+
+The same idea, one sphere per prime, each touching the next, leads to a picture of the Riemann Hypothesis: [The Riemann Hypothesis, drawn with circles](https://ninjas1337.github.io/Riemann-Hypothesis-Drawn-with-Circles/).
+
+The previous version of this page (a tilting circle of radius π) is kept in the git history.
 
 ## Note
 
